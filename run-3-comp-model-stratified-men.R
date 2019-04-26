@@ -8,8 +8,7 @@ library(MASS)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-setwd('~/OneDrive - Imperial College London/backup/ct_trends/Natsal_symptoms_testing/natsal3_ct_testing')
-
+setwd("~/OneDrive - Imperial College London/backup/papers/reasons_and_venues/natsal3_ct_testing")
 natsal3 <- read.dta("/Users/Joanna/OneDrive - Imperial College London/backup/Natsal-3/UKDA-7799-stata11/stata11/eul_natsal_2010_for_archive.dta")
 
 natsal3$tested <- NA
@@ -77,12 +76,12 @@ lines(seq(0,100,0.1), dgamma(seq(0,100,0.1),14,1))
 legend("topright", "B", bty="n", cex=3, inset = c(0,-0.1))
 
 h <- hist(op0$lambda_slow, plot=FALSE)
-par(mgp=c(4,1,0))
-plot(rep(h$breaks, each=2), c(0, rep(h$density, each=2), 0), type='l', xlab = expression(atop('Natural clearance rate of', 'asymptomatic infections (' ~ year^{-1} ~ ')')), ylab='Denisty', main='', xlim=c(0,1.5), ylim=c(0,6), bty='n')
+#par(mgp=c(4,1,0))
+plot(rep(h$breaks, each=2), c(0, rep(h$density, each=2), 0), type='l', xlab = expression('Natural clearance rate (' ~ year^{-1} ~ ')'), ylab='Denisty', main='', xlim=c(0,1.5), ylim=c(0,6), bty='n')
 lines(seq(0,10,0.01), dlnorm(seq(0,10,0.01),log(0.42), 0.4))
 legend("topright", "C", bty="n", cex=3, inset = c(0,-0.1))
-par(mgp=c(3,1,0))
-mtext("Density", 2, cex=par('cex'), line=3)
+#par(mgp=c(3,1,0))
+#mtext("Density", 2, cex=par('cex'), line=3)
 
 plot(0,0,pch='',xlab = expression("Force of infection (" ~ year^{-1} ~ ")"), ylab='Density', main='', xlim=c(0,0.5), ylim=c(0,50), bty='n')
 lines(seq(0,1,0.01), dexp(seq(0,1,0.01),0.001))
