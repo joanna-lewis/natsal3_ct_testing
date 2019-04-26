@@ -76,7 +76,7 @@ fit_ustr <-stan(
 op_ustr <- extract(fit_ustr)
 
 
-quartz(height = 8.27 * 1.5, width= 11.69 )
+quartz(height = 9, width= 9 )
 par(mfrow=c(3,3), mar=c(5,4,2,2))
 
 h_s <- hist(100*op_str$p_symp, plot=FALSE)
@@ -95,7 +95,7 @@ legend("topright", "B", bty="n", cex=3)
 
 h_s <- hist(op_str$lambda_slow, plot=FALSE)
 h_u <- hist(op_ustr$lambda_slow, plot=FALSE)
-plot(rep(h_u$breaks, each=2), c(0, rep(h_u$density, each=2), 0), type='l', col='grey', xlab = expression('Natural clearance rate of asymptomatic infections (' ~ year^{-1} ~ ')'), ylab='Denisty', main='', xlim=c(0,1.5), ylim=c(0,6), bty='n')
+plot(rep(h_u$breaks, each=2), c(0, rep(h_u$density, each=2), 0), type='l', col='grey', xlab = expression('Natural clearance rate (' ~ year^{-1} ~ ')'), ylab='Denisty', main='', xlim=c(0,1.5), ylim=c(0,6), bty='n')
 lines(rep(h_s$breaks, each=2), c(0, rep(h_s$density, each=2), 0))
 lines(seq(0,10,0.01), dnorm(seq(0,10,0.01), 0.74, (0.89-0.61)/3.919928))
 legend("topright", "C", bty="n", cex=3)

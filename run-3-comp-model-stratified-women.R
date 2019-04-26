@@ -35,7 +35,7 @@ dt0 <- list(
   
   N = nrow(sub[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested),]),
   N_strata = length(unique(sub$totnewy3)),
-  str = as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]),
+  str = 1 + 0*as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]),
   wt = sub$total_wt[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)],
   tested = sub$tested[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)],
   symp = sub$why2[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)] == "symptoms",
