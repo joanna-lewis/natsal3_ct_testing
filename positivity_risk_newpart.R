@@ -644,7 +644,7 @@ for(i in c("Male","Female")){
 }
 
 
-# quartz(width=12, height=6)
+quartz(width=12, height=6)
 plot(dt_why$X, 
      dt_why$Estimate, 
      pch = c(1,0,5),
@@ -688,7 +688,7 @@ axis(side = 1, line = 2.5, at = c(17,31), labels = FALSE, tcl=0)
 points(c(1,1,1), c(24,22,20), pch=c(1,0,5))
 lines(c(0.5,1.5),c(18,18))
 polygon(c(0.5, 1.5, 1.5, 0.5), c(17, 17, 19, 19), col=rgb(0,0,0,0.1), border=NA)
-text(c(1.5,1.5,1.5,1.5), c(24,22,20,18), pos=4, labels = c("All tested", "Exclude symptomatic diagnoses", "Screens only", "Natsal-3 prevalence estimates"))
+text(c(1.5,1.5,1.5,1.5), c(24,22,20,18), pos=4, labels = c("All tested", "Exclude symptomatic diagnoses and partner notifications", "Screens only", "Natsal-3 prevalence estimates"))
 
 # shading for population prevalence by group
 lines(c(0.5, 3.5),c(2.3, 2.3))
