@@ -9,5 +9,5 @@ This repository contains code for analysing data on chlamydia infection, testing
 The code is organised in the following files:
 
 * `reason_setting.R` is used to examine reason for test, test setting, number of new partners in the last year, and correlations between them.
-* `positivity_risk_newpart` compares positivity of tests carried out for different reasons, and by men and women reporting different numbers of partners.
+* `positivity_risk_newpart.R` compares positivity of tests carried out for different reasons, and by men and women reporting different numbers of partners.
 
