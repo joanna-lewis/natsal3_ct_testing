@@ -15,7 +15,7 @@ data {
 parameters {
   
   real<lower=0,upper=1> p_symp; // proportion of infections that develop symptoms
-  real<lower=0> lambda_slow; // natural recovery rate of untreated, asymptomatic infections
+  real<lower=0> lambda_slow; // natural recovery rate of untreated infections
   
   vector<lower=0>[N_strata] foi; // force of infection
   
@@ -32,7 +32,7 @@ transformed parameters{
   vector<lower=0>[N_strata] alpha_SU;
   
   vector<lower=0,upper=1>[N_strata] S; // steady-state proportion symptomatic-infected
-  vector<lower=0,upper=1>[N_strata] A; // steady-state proportion symptomatic-infected
+  vector<lower=0,upper=1>[N_strata] A; // steady-state proportion asymptomatic-infected
   vector<lower=0,upper=1>[N_strata] prev; // steady-state prevalence
   
   alpha_UA = foi * (1 - p_symp);
@@ -48,24 +48,27 @@ transformed parameters{
 
 model {
   
+  //////////////////
   // priors
+  //////////////////
 
-  //////////////////
+  /////////
   // men
-  //////////////////
+  /////////
   p_symp ~ beta(11, 5); // based on Geisler 2008 (all men re-testing)
   lambda_slow ~ lognormal(log(0.42), 0.4); // from Lewis 2017 JID
 
-  //////////////////
+  /////////
   // same for men and women
-  //////////////////
+  /////////
   foi ~ exponential(0.001); // uninformative
   scr ~ exponential(0.001); // uninformative
   trt ~ gamma(14,1); // based on Mercer 2007 and Lewis 2017
   
-  // 19 ~ binomial(597, prev);
-  //prev ~ beta(20, 579); // steady-state prevalence from Woodhall 2016
-   
+  //////////////////
+  // likelihood
+  //////////////////
+  
    for(i in 1:N){
      
      if(tested[i] == 1){
@@ -90,24 +93,4 @@ model {
      }
 
    
-}
-
-generated quantities{
-  
-  vector<lower=0,upper=1>[N_strata] p_test;
-  vector<lower=0,upper=1>[N_strata] p_symp_given_test;
-  vector<lower=0,upper=1>[N_strata] p_diag_given_test;
-  
-  int n_test_sim[N_strata];
-  int n_diag_sim[N_strata];
-  
-  p_symp_given_test = (S * trt) ./ (scr + S * trt);
-  p_diag_given_test = (S .* (trt+scr) + A .* scr ) ./ (scr + S * trt);
-  
-  for(i in 1:N_strata){
-    p_test[i] = 1 - exp(poisson_lpmf(0 | scr[i] + S[i] * trt));
-    n_test_sim[i] = poisson_rng(3388842 * p_test[i]);
-    n_diag_sim[i] = binomial_rng(n_test_sim[i], p_diag_given_test[i]);
-  }
-  
 }

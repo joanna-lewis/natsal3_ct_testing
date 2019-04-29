@@ -4,6 +4,10 @@ library(rstan)
 library(foreign)
 library(survey)
 
+####################
+# data
+####################
+
 setwd("~/OneDrive - Imperial College London/backup/papers/reasons_and_venues/natsal3_ct_testing")
 
 natsal3 <- read.dta("/Users/Joanna/OneDrive - Imperial College London/backup/Natsal-3/UKDA-7799-stata11/stata11/eul_natsal_2010_for_archive.dta")
@@ -31,20 +35,25 @@ sub$totnewy3 <- factor(as.character(sub$totnewy3))
 
 init0 <- list(p_symp = 0.5, lambda_slow = 0.74, foi = rep(0.001, times=3), scr = rep(0.001, times=3), trt = 0.001)
 
+# comment/un-comment lines beginning `str` depending whether you want analysis stratified by number of new partners
 dt0 <- list(
   
   N = nrow(sub[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested),]),
   N_strata = length(unique(sub$totnewy3)),
-  str = 1 + 0*as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]),
+  str = as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]), # stratified by number of new partners
+  # str = 1 + 0*as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]), # unstratified
   wt = sub$total_wt[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)],
   tested = sub$tested[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)],
   symp = sub$why2[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)] == "symptoms",
-#  symp = sub$why2[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)] %in% c("symptoms","partner","re-test","other"),
   diag = sub$whnchlam[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)] == "Less than 1 year ago"
   
 )
 
 dt0$symp[is.na(dt0$symp)] <- -99
+
+####################
+# run Stan model
+####################
 
 fit0 <-stan(
   file = '3-comp-model-stratified-women.stan',
@@ -57,6 +66,10 @@ fit0 <-stan(
 )
 
 op0 <- extract(fit0)
+
+####################
+# plot posteriors
+####################
 
 quartz(height = 5.83, width= 8.27)
 par(mfrow=c(2,3), mar=c(5,4,2,2))
@@ -72,12 +85,9 @@ lines(seq(0,100,0.1), dgamma(seq(0,100,0.1),14,1))
 legend("topright", "B", bty="n", cex=3, inset = c(0,-0.1))
 
 h <- hist(op0$lambda_slow, plot=FALSE)
-#par(mgp=c(4,1,0))
 plot(rep(h$breaks, each=2), c(0, rep(h$density, each=2), 0), type='l', xlab = expression('Natural clearance rate (' ~ year^{-1} ~ ')'), ylab='Denisty', main='', xlim=c(0,1.5), ylim=c(0,6), bty='n')
 lines(seq(0,10,0.01), dnorm(seq(0,10,0.01),0.74, (0.89-0.61)/3.919928))
 legend("topright", "C", bty="n", cex=3, inset = c(0,-0.1))
-#par(mgp=c(3,1,0))
-#mtext("Density", 2, cex=par('cex'), line=3)
 
 plot(0,0,pch='',xlab = expression("Force of infection (" ~ year^{-1} ~ ")"), ylab='Density', main='', xlim=c(0,0.5), ylim=c(0,50), bty='n')
 lines(seq(0,1,0.01), dexp(seq(0,1,0.01),0.001))
@@ -90,8 +100,8 @@ lines(rep(fh1$breaks, each=2), c(0, rep(fh1$density, each=2), 0), col='darkgreen
 lines(rep(fh2$breaks, each=2), c(0, rep(fh2$density, each=2), 0), col='blue')
 lines(rep(fh3$breaks, each=2), c(0, rep(fh3$density, each=2), 0), col='red')
 # unstratified
-fh <- hist(op0$foi[,1], plot=FALSE)
-lines(rep(fh$breaks, each=2), c(0, rep(fh$density, each=2), 0))
+# fh <- hist(op0$foi[,1], plot=FALSE)
+# lines(rep(fh$breaks, each=2), c(0, rep(fh$density, each=2), 0))
 
 plot(0,0,pch='', xlab = expression("Screening rate (" ~ year^{-1} ~ ")"), ylab='Density', main='', xlim=c(0,1.5), ylim=c(0,20), bty='n')
 lines(seq(0,1.5,0.01), dexp(seq(0,1.5,0.01),0.001))
@@ -104,8 +114,8 @@ lines(rep(sh1$breaks, each=2), c(0, rep(sh1$density, each=2), 0), col='darkgreen
 lines(rep(sh2$breaks, each=2), c(0, rep(sh2$density, each=2), 0), col='blue')
 lines(rep(sh3$breaks, each=2), c(0, rep(sh3$density, each=2), 0), col='red')
 # unstratified
-sh <- hist(op0$scr[,1], plot=FALSE)
-lines(rep(sh$breaks, each=2), c(0, rep(sh$density, each=2), 0))
+# sh <- hist(op0$scr[,1], plot=FALSE)
+# lines(rep(sh$breaks, each=2), c(0, rep(sh$density, each=2), 0))
 
 plot(0,0,pch='', xlab='Chlamydia prevalence (%)', ylab = 'Density', main='', xlim=c(0,15), ylim=c(0,0.6), bty='n')
 legend("topright", "F", bty="n", cex=3, inset = c(0,-0.1))
@@ -123,19 +133,24 @@ points(2.2,0.6,pch=16, col='darkgreen') # women aged 16-24 reporting 0 new partn
 points(2.8, 0.5, pch=16, col='blue') # women aged 16-24 reporting 1 new partner
 points(5.9, 0.4, pch=16, col='red') # women aged 16-24 reporting 2+ new partners
 # unstratified
-ph <- hist(100*op0$prev[,1], plot=FALSE)
-lines(rep(ph$breaks, each=2), c(0, rep(ph$density, each=2), 0))
-arrows(2.2,0.55,4.3,0.55,angle=90,code=3,length=0.02)
-points(3.1, 0.55, pch=16) # all women aged 16-24 
+# ph <- hist(100*op0$prev[,1], plot=FALSE)
+# lines(rep(ph$breaks, each=2), c(0, rep(ph$density, each=2), 0))
+# arrows(2.2,0.55,4.3,0.55,angle=90,code=3,length=0.02)
+# points(3.1, 0.55, pch=16) # all women aged 16-24 
 
+##########
 # posterior summaries
+##########
 
 t(apply(op0$foi, 2, quantile, p=c(0.5, 0.025, 0.975)))
 t(apply(op0$scr, 2, quantile, p=c(0.5, 0.025, 0.975)))
 t(apply(op0$prev, 2, quantile, p=c(0.5, 0.025, 0.975)))
 
+##########
 # plot to show positivity
+##########
 
+quartz()
 par(mfrow=c(1,1), mar=c(5.1, 4.1, 4.1, 4.1))
 
 mli <- which(op0$lp__ == max(op0$lp__))[1]
@@ -199,15 +214,12 @@ z3 <- ks::kde(matrix(c(op0$foi[,3], op0$scr[,3]), ncol=2))
 contour(z1$eval.points[[1]], z1$eval.points[[2]], z1$estimate, 
         levels = z1$cont['5%'], 
         add=TRUE, drawlabels=FALSE, lwd=3, col='darkgreen')
-#text(0.05, 0.3, '0 new \npartners', adj=c(0,1))
 contour(z2$eval.points[[1]], z2$eval.points[[2]], z2$estimate, 
         levels = z2$cont['5%'], 
         add=TRUE, drawlabels=FALSE, lwd=3, col='blue')
-#text(0.07, 0.45, '1 new \npartner', adj=c(0,1))
 contour(z3$eval.points[[1]], z3$eval.points[[2]], z3$estimate, 
         levels = z3$cont['5%'], 
         add=TRUE, drawlabels=FALSE, lwd=3, col='red')
-#text(0.13, 0.65, '2+ new \npartners', adj=c(0,1))
 
 legend('bottomright', inset = c(0.05,0.15),
        col = c('darkgreen', 'blue', 'red'),
