@@ -52,21 +52,27 @@ transformed parameters{
 
 model {
   
+  //////////////////
   // priors
+  //////////////////
 
-  //////////////////
+  /////////
   // women
-  //////////////////
+  /////////
   p_symp ~ beta(27, 90); // based on Geisler 2008 
   lambda_slow ~ normal(0.74, (0.89-0.61)/3.919928); // from Price 2013. 2*qnorm(0.975) = 3.919928
 
+  /////////
+  // same for men and women
+  /////////
   foi ~ exponential(0.001); // uninformative
   scr ~ exponential(0.001); // uninformative
   trt ~ gamma(14,1); // based on Mercer 2007 and Lewis 2017
   pn ~ exponential(0.001); // uninformative
   
-  // 19 ~ binomial(597, prev);
-  //prev ~ beta(20, 579); // steady-state prevalence from Woodhall 2016
+  //////////////////
+  // likelihood
+  //////////////////
    
    for(i in 1:N){
      
@@ -98,20 +104,3 @@ model {
        
    }
 
-generated quantities{
-  
-//  real<lower=0,upper=1> p_test;
-//  real<lower=0,upper=1> p_symp_given_test;
-//  real<lower=0,upper=1> p_diag_given_test;
-  
-//  int n_test_sim;
-//  int n_diag_sim;
-  
-//  p_test = 1 - exp(poisson_lpmf(0 | scr + S * trt));
-//  p_symp_given_test = (S * trt)/(scr + S * trt);
-//  p_diag_given_test = (S * (trt+scr) + A * scr ) / (scr + S * trt);
-  
-//  n_test_sim = poisson_rng(3388842 * p_test);
-//  n_diag_sim = binomial_rng(n_test_sim, p_diag_given_test);
-  
-}

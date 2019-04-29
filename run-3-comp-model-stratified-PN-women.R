@@ -5,6 +5,10 @@ library(foreign)
 library(survey)
 library(MASS)
 
+####################
+# data
+####################
+
 setwd('/Users/Joanna/OneDrive - Imperial College London/backup/ct_trends/Natsal_symptoms_testing/modelling')
 
 natsal3 <- read.dta("/Users/Joanna/OneDrive - Imperial College London/backup/Natsal-3/UKDA-7799-stata11/stata11/eul_natsal_2010_for_archive.dta")
@@ -32,7 +36,14 @@ sub$totnewy3 <- factor(as.character(sub$totnewy3))
 
 init0 <- list(p_symp = 0.5, lambda_slow = 0.74, foi = rep(0.001, times=3), scr = rep(0.001, times=3), trt = 0.001)
 
-# data set with stratification by number of partners
+####################
+# run Stan model
+####################
+
+##########
+# with stratification
+##########
+
 dt_str <- list(
   
   N = nrow(sub[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested),]),
@@ -49,7 +60,10 @@ dt_str <- list(
 dt_str$symp[is.na(dt_str$symp)] <- -99
 dt_str$partner[is.na(dt_str$partner)] <- -99
 
-# data set without stratification by number of partners
+##########
+# without stratification
+##########
+
 dt_ustr <- dt_str
 dt_ustr$str <- 1 + 0*(as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]))
 
@@ -75,6 +89,10 @@ fit_ustr <-stan(
 )
 op_ustr <- extract(fit_ustr)
 
+
+####################
+# plot posteriors
+####################
 
 quartz(height = 9, width= 9 )
 par(mfrow=c(3,3), mar=c(5,4,2,2))
@@ -159,85 +177,11 @@ points(2.2,0.65,pch=16, col='darkgreen') # women aged 16-24 reporting 0 new part
 points(2.8,0.6, pch=16, col='blue') # women aged 16-24 reporting 1 new partner
 points(5.9,0.55, pch=16, col='red') # women aged 16-24 reporting 2+ new partners
 
+##########
 # posterior summaries
+##########
 
 t(apply(op0$foi, 2, quantile, p=c(0.5, 0.025, 0.975)))
 t(apply(op0$scr, 2, quantile, p=c(0.5, 0.025, 0.975)))
 t(apply(op0$prev, 2, quantile, p=c(0.5, 0.025, 0.975)))
-
-# plot to show positivity
-
-par(mfrow=c(1,1))
-
-mli <- which(op0$lp__ == max(op0$lp__))[1]
-
-trt <- op0$trt[mli] # treatment seeking rate in symptomatic people
-sc <- op0$lambda_slow[mli] # rate of natural recovery (self-clear)
-p_symp <- op0$p_symp[mli] # proportion of incident infections that develop symptoms
-
-foi <- matrix(rep(seq(0,0.4,0.0005), times = 751), nrow=751, byrow=TRUE) # 801 values
-scr <- matrix(rep(seq(0,1.5,0.002), each = 801), nrow=751, byrow=TRUE) # 751 values
-
-alpha_AU <- scr + sc
-alpha_UA <- foi * (1 - p_symp)
-alpha_SU <- scr + sc + trt
-alpha_US <- foi * p_symp
-
-S <- alpha_AU*alpha_US/(alpha_AU*alpha_US + alpha_SU*(alpha_AU + alpha_UA))
-A <- alpha_SU*alpha_UA/(alpha_AU*alpha_US + alpha_SU*(alpha_AU + alpha_UA))
-
-tr <- scr + trt*S
-dr <- scr*(S + A) + trt*S
-
-positivity <- dr/tr
-
-image(foi[1,], scr[,1], t(positivity), 
-      col=gray(seq(1,0,-0.001)), 
-      useRaster=TRUE, 
-      xlab='Force of infection', ylab='Screening rate', 
-      main = "Test positivity in women",
-      xlim = c(0, 0.4), ylim=c(0, 1.5), zlim=c(0,1)
-)
-
-cs <- contourLines(foi[1,], scr[,1], t(positivity), 
-                   levels=c(0.015, 0.050, 0.025, 0.091, 0.073, 0.156))
-
-contour(foi[1,], scr[,1], t(positivity), 
-        add=TRUE, 
-        levels=c(0.015, 0.050, 0.025, 0.091, 0.073, 0.156), 
-        lwd=3,
-        col=rep(c('darkgreen','blue','red'),each=2),
-        drawlabels=FALSE)
-
-for(i in 1:6)
-  text(cs[[i]][["x"]][1 + 40*ceiling(i/2)], 
-       cs[[i]][["y"]][1 + 40*ceiling(i/2)], 
-       cs[[i]][['level']], 
-       pos=1, offset=1, col=rep(c('darkgreen','blue','red'),each=2)[i])
-
-z1 <- ks::kde(matrix(c(op0$foi[,1], op0$scr[,1]), ncol=2))
-z2 <- ks::kde(matrix(c(op0$foi[,2], op0$scr[,2]), ncol=2))
-z3 <- ks::kde(matrix(c(op0$foi[,3], op0$scr[,3]), ncol=2))
-
-contour(z1$eval.points[[1]], z1$eval.points[[2]], z1$estimate, 
-        levels = z1$cont['5%'], 
-        add=TRUE, drawlabels=FALSE, lty=2, lwd=3, col='darkgreen')
-#text(0.05, 0.3, '0 new \npartners', adj=c(0,1))
-contour(z2$eval.points[[1]], z2$eval.points[[2]], z2$estimate, 
-        levels = z2$cont['5%'], 
-        add=TRUE, drawlabels=FALSE, lty=2, lwd=3, col='blue')
-#text(0.07, 0.45, '1 new \npartner', adj=c(0,1))
-contour(z3$eval.points[[1]], z3$eval.points[[2]], z3$estimate, 
-        levels = z3$cont['5%'], 
-        add=TRUE, drawlabels=FALSE, lty=2, lwd=3, col='red')
-#text(0.13, 0.65, '2+ new \npartners', adj=c(0,1))
-
-legend('bottomright', inset = c(0.1,0.3),
-       col = c('darkgreen', 'blue', 'red'),
-       lwd = 3,
-       legend = c('0 new partners', '1 new partner', '2+ new partners'),
-       bty = 'n')
-
-# box for comparison to men's plot
-polygon(c(0, 0.2, 0.2, 0), c(0, 0, 0.8, 0.8))
 
