@@ -9,7 +9,7 @@ library(MASS)
 # data
 ####################
 
-setwd('/Users/Joanna/OneDrive - Imperial College London/backup/ct_trends/Natsal_symptoms_testing/modelling')
+setwd("~/OneDrive - Imperial College London/backup/papers/reasons_and_venues/natsal3_ct_testing")
 
 natsal3 <- read.dta("/Users/Joanna/OneDrive - Imperial College London/backup/Natsal-3/UKDA-7799-stata11/stata11/eul_natsal_2010_for_archive.dta")
 
@@ -181,7 +181,7 @@ points(5.9,0.55, pch=16, col='red') # women aged 16-24 reporting 2+ new partners
 # posterior summaries
 ##########
 
-t(apply(op0$foi, 2, quantile, p=c(0.5, 0.025, 0.975)))
-t(apply(op0$scr, 2, quantile, p=c(0.5, 0.025, 0.975)))
-t(apply(op0$prev, 2, quantile, p=c(0.5, 0.025, 0.975)))
+t(apply(op_str$foi, 2, quantile, p=c(0.5, 0.025, 0.975)))
+t(apply(op_str$scr, 2, quantile, p=c(0.5, 0.025, 0.975)))
+t(apply(op_str$prev, 2, quantile, p=c(0.5, 0.025, 0.975)))
 

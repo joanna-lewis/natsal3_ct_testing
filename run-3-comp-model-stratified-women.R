@@ -41,7 +41,7 @@ dt0 <- list(
   N = nrow(sub[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested),]),
   N_strata = length(unique(sub$totnewy3)),
   str = as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]), # stratified by number of new partners
-  # str = 1 + 0*as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]), # unstratified
+#  str = 1 + 0*as.numeric(sub$totnewy3[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)]), # unstratified
   wt = sub$total_wt[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)],
   tested = sub$tested[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)],
   symp = sub$why2[sub$agrp == "16-24" & sub$rsex == "Female" & !is.na(sub$tested)] == "symptoms",
@@ -60,7 +60,7 @@ fit0 <-stan(
   data = dt0,
   chains = 1,
   iter = 10000,
-  warmup = 5000,
+  warmup = 1000,
   init = list(init0),
   seed = 12345
 )
@@ -175,7 +175,7 @@ dr <- scr*(S + A) + trt*S
 
 positivity <- dr/tr
 
-image(foi[1,], scr[,1], t(positivity), 
+image(foi[1,], scr[,1], 0*t(positivity), 
       col=gray(seq(1,0,-0.001)), 
       useRaster=TRUE, 
       xlab=expression("Force of infection (" ~ year^{-1} ~ ")"), 
@@ -232,3 +232,67 @@ mtext('B', side=3, line=0.5, at=0.43, cex=5)
 # box for comparison to men's plot
 polygon(c(0, 0.2, 0.2, 0), c(0, 0, 0.8, 0.8))
 
+##########
+# plot to show prevalence
+##########
+
+quartz()
+par(mfrow=c(1,1), mar=c(5.1, 4.1, 4.1, 4.1))
+
+image(foi[1,], scr[,1], 0*t(positivity), 
+      col=gray(seq(1,0,-0.001)), 
+      useRaster=TRUE, 
+      xlab=expression("Force of infection (" ~ year^{-1} ~ ")"), 
+      ylab=expression("Screening rate (" ~ year^{-1} ~ ")"), 
+      main = "Prevalence in women",
+      xlim = c(0, 0.4), ylim=c(0, 1.5), zlim=c(0,1)
+)
+
+cs <- contourLines(foi[1,], scr[,1], t( A + S ), 
+                   levels=c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2))
+
+contour(foi[1,], scr[,1], t(A + S), 
+        add=TRUE, 
+        levels=c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2), 
+        lwd=1,
+        drawlabels=FALSE)
+
+for(i in 1:5)
+  text(cs[[i]][["x"]][which(cs[[i]][["y"]] > 1.4)[1]], 
+       cs[[i]][["y"]][which(cs[[i]][["y"]] > 1.4)[1]], 
+       paste(100*cs[[i]][['level']], '%', sep=""), 
+       adj=c(0,2)
+  )
+
+for(i in 5:6)
+  text(cs[[i]][["x"]][which(cs[[i]][["x"]] > 0.38)[1]], 
+       cs[[i]][["y"]][which(cs[[i]][["x"]] > 0.38)[1]], 
+       paste(100*cs[[i]][['level']], '%', sep=""), 
+       adj=c(-2,0), pos=2
+  )
+
+
+z1 <- ks::kde(matrix(c(op0$foi[,1], op0$scr[,1]), ncol=2))
+z2 <- ks::kde(matrix(c(op0$foi[,2], op0$scr[,2]), ncol=2))
+z3 <- ks::kde(matrix(c(op0$foi[,3], op0$scr[,3]), ncol=2))
+
+contour(z1$eval.points[[1]], z1$eval.points[[2]], z1$estimate, 
+        levels = z1$cont['5%'], 
+        add=TRUE, drawlabels=FALSE, lty=1, lwd=3, col='darkgreen')
+contour(z2$eval.points[[1]], z2$eval.points[[2]], z2$estimate, 
+        levels = z2$cont['5%'], 
+        add=TRUE, drawlabels=FALSE, lty=1, lwd=3, col='blue')
+contour(z3$eval.points[[1]], z3$eval.points[[2]], z3$estimate, 
+        levels = z3$cont['5%'], 
+        add=TRUE, drawlabels=FALSE, lty=1, lwd=3, col='red')
+
+legend('bottomright', inset = c(0.05,0.15),
+       col = c('darkgreen', 'blue', 'red'),
+       lwd = 3,
+       legend = c('0 new partners', '1 new partner', '≥2 new partners'),
+       bty = 'n')
+
+mtext('D', side=3, line=0.5, at=0.43, cex=5)
+
+# box for comparison to men's plot
+polygon(c(0, 0.2, 0.2, 0), c(0, 0, 0.8, 0.8))

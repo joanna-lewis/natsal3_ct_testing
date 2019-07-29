@@ -178,7 +178,7 @@ dr <- scr*(S + A) + trt*S
 
 positivity <- dr/tr
 
-image(foi[1,], scr[,1], t(positivity), 
+image(foi[1,], scr[,1], 0*t(positivity), 
       col=gray(seq(1,0,-0.001)), 
       useRaster=TRUE, 
       xlab=expression("Force of infection (" ~ year^{-1} ~ ")"), 
@@ -232,3 +232,65 @@ legend('bottomright', inset = c(0.05,0.15),
        bty = 'n')
 
 mtext('A', side=3, line=0.5, at=0.215, cex=5)
+
+##########
+# plot to show prevalence
+##########
+
+quartz()
+par(mfrow=c(1,1), mar=c(5.1, 4.1, 4.1, 4.1))
+
+image(foi[1,], scr[,1], 0*t(positivity), 
+      col=gray(seq(1,0,-0.001)), 
+      useRaster=TRUE, 
+      xlab=expression("Force of infection (" ~ year^{-1} ~ ")"), 
+      ylab=expression("Screening rate (" ~ year^{-1} ~ ")"), 
+      main = "Prevalence in men",
+      xlim = c(0, 0.2), ylim=c(0, 0.8), zlim=c(0,1)
+)
+
+cs <- contourLines(foi[1,], scr[,1], t( A + S ), 
+                   levels=c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2))
+
+contour(foi[1,], scr[,1], t(A + S), 
+        add=TRUE, 
+        levels=c(0.01, 0.02, 0.05, 0.1, 0.15, 0.2), 
+        lwd=1,
+        drawlabels=FALSE)
+
+for(i in 1:3)
+  text(cs[[i]][["x"]][which(cs[[i]][["y"]] > 0.8)[1]], 
+       cs[[i]][["y"]][which(cs[[i]][["y"]] > 0.8)[1]], 
+       paste(100*cs[[i]][['level']], '%', sep=""), 
+       adj=c(0,2)
+  )
+
+for(i in 4:6)
+  text(cs[[i]][["x"]][which(cs[[i]][["x"]] > 0.2)[1]], 
+       cs[[i]][["y"]][which(cs[[i]][["x"]] > 0.2)[1]], 
+       paste(100*cs[[i]][['level']], '%', sep=""), 
+       adj=c(-2,0), pos=2
+  )
+
+
+z1 <- ks::kde(matrix(c(op0$foi[,1], op0$scr[,1]), ncol=2))
+z2 <- ks::kde(matrix(c(op0$foi[,2], op0$scr[,2]), ncol=2))
+z3 <- ks::kde(matrix(c(op0$foi[,3], op0$scr[,3]), ncol=2))
+
+contour(z1$eval.points[[1]], z1$eval.points[[2]], z1$estimate, 
+        levels = z1$cont['5%'], 
+        add=TRUE, drawlabels=FALSE, lty=1, lwd=3, col='darkgreen')
+contour(z2$eval.points[[1]], z2$eval.points[[2]], z2$estimate, 
+        levels = z2$cont['5%'], 
+        add=TRUE, drawlabels=FALSE, lty=1, lwd=3, col='blue')
+contour(z3$eval.points[[1]], z3$eval.points[[2]], z3$estimate, 
+        levels = z3$cont['5%'], 
+        add=TRUE, drawlabels=FALSE, lty=1, lwd=3, col='red')
+
+legend('bottomright', inset = c(0.05,0.15),
+       col = c('darkgreen', 'blue', 'red'),
+       lwd = 3,
+       legend = c('0 new partners', '1 new partner', '≥2 new partners'),
+       bty = 'n')
+
+mtext('C', side=3, line=0.5, at=0.215, cex=5)

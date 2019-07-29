@@ -128,49 +128,89 @@ mtext('Test setting', side=1, line=2.5, cex=1, font=2)
 svytable(~ where3, design=subset(tdesign, rsex == "Male"), Ntotal = 1 ) #
 svytable(~ where3, design=subset(tdesign, rsex == "Female"), Ntotal = 1 ) #
 
+svyby(~ (where3=="elsewhere"), by = ~ rsex, design = tdesign, svyciprop, vartype="ci", method="mean", df=Inf)
+svyby(~ (where3=="GP"), by = ~ rsex, design = tdesign, svyciprop, vartype="ci", method="mean", df=Inf)
+svyby(~ (where3=="sexual health"), by = ~ rsex, design = tdesign, svyciprop, vartype="ci", method="mean", df=Inf)
+
 # testing for each reason
 svytable(~ why4, design=subset(tdesign, rsex == "Male"), Ntotal = 1 ) #
 svytable(~ why4, design=subset(tdesign, rsex == "Female"), Ntotal = 1 ) #
+
+svyby(~ (why4=="screen"), by = ~ rsex, design = tdesign, svyciprop, vartype="ci", method="mean", df=Inf)
 
 # reasons for testing, in sexual health
 svytable(~ why4, design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), Ntotal = 1 )
 svytable(~ why4, design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), Ntotal = 1 )
 
+svyby(~ (why4=="screen"), by = ~ rsex, design = subset(tdesign, where3 == "sexual health"), svyciprop, vartype="ci", method="logit", df=Inf)
+svyby(~ (why4=="symptoms"), by = ~ rsex, design = subset(tdesign, where3 == "sexual health"), svyciprop, method="logit", df=Inf, vartype="ci")
+svyby(~ (why4=="other"), by = ~ rsex, design = subset(tdesign, where3 == "sexual health"), svyciprop, vartype="ci", method="logit", df=Inf)
+
 # reasons for testing, outside sexual health
 svytable(~ why4, design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), Ntotal = 1 )
 svytable(~ why4, design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), Ntotal = 1 )
+
+svyby(~ (why4=="screen"), by = ~ rsex, design = subset(tdesign, where3 != "sexual health"), svyciprop, method="logit", df=Inf, vartype="ci")
+svyby(~ (why4=="symptoms"), by = ~ rsex, design = subset(tdesign, where3 != "sexual health"), svyciprop, method="logit", df=Inf, vartype="ci")
+svyby(~ (why4=="other"), by = ~ rsex, design = subset(tdesign, where3 != "sexual health"), svyciprop, method="logit", df=Inf, vartype="ci")
 
 # setting of tests prompted by symptoms
 svytable(~ where3, design=subset(tdesign, rsex == "Male" & why4 == "symptoms"), Ntotal = 1 )
 svytable(~ where3, design=subset(tdesign, rsex == "Female" & why4 == "symptoms"), Ntotal = 1 )
 
+svyby(~ (where3=="sexual health"), by = ~ rsex, design = subset(tdesign, why4 == "symptoms"), svyciprop, vartype="ci", method="mean", df=Inf)
+svyby(~ (where3=="GP"), by = ~ rsex, design = subset(tdesign, why4 == "symptoms"), svyciprop, vartype="ci", method="mean", df=Inf)
+
+confint(svymean(~ (where3=="sexual health"), design = subset(tdesign, rsex == "Male" & why4 == "symptoms"), Ntotal = 1))
+confint(svymean(~ (where3=="GP"), design = subset(tdesign, rsex == "Female" & why4 == "symptoms"), Ntotal = 1))
+
 # positivity of tests in sexual health
-svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Male" & where3 == "sexual health"))
-svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Female" & where3 == "sexual health"))
+svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="logit", df=Inf)
+attr(svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="logit", df=Inf), "ci")
+svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="logit", df=Inf)
+attr(svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="logit", df=Inf), "ci")
 
 # positivity of tests outside sexual health
-svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Male" & where3 != "sexual health"))
-svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Female" & where3 != "sexual health"))
+svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Male" & where3 != "sexual health"), method = "logit", df=Inf)
+attr(svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Male" & where3 != "sexual health"), method = "logit", df=Inf), "ci")
+svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Female" & where3 != "sexual health"), method = "logit", df=Inf)
+attr(svyciprop(~(whnchlam == "Less than 1 year ago"), design = subset(tdesign, rsex == "Female" & where3 != "sexual health"), method = "logit", df=Inf), "ci")
 
 # proportion testing in sexual health reporting different numbers of partners (men)
-svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), Ntotal = 1 )
+svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="mean", df=Inf )
+svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="mean", df=Inf )
+svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="mean", df=Inf )
+
+attr(svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="mean", df=Inf ), "ci")
+attr(svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="mean", df=Inf ), "ci")
+attr(svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 == "sexual health"), method="mean", df=Inf ), "ci")
 
 # proportion testing in sexual health reporting different numbers of partners (women)
-svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), Ntotal = 1 )
+svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="mean", df=Inf )
+svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="mean", df=Inf )
+svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="mean", df=Inf )
+
+attr(svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="mean", df=Inf ), "ci")
+attr(svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="mean", df=Inf ), "ci")
+attr(svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 == "sexual health"), method="mean", df=Inf ), "ci")
 
 # proportion testing outside sexual health reporting different numbers of partners (men)
-svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), Ntotal = 1 )
+svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), method="mean", df=Inf )
+svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), method="mean", df=Inf )
+svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), method="mean", df=Inf )
+
+attr(svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), method="mean", df=Inf ), "ci")
+attr(svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), method="mean", df=Inf ), "ci")
+attr(svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Male" & where3 != "sexual health"), method="mean", df=Inf ), "ci")
 
 # proportion testing outside sexual health reporting different numbers of partners (women)
-svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), Ntotal = 1 )
-svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), Ntotal = 1 )
+svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), method="mean", df=Inf)
+svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), method="mean", df=Inf)
+svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), method="mean", df=Inf)
+
+attr(svyciprop(~ (totnewy3 == "0 new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), method="mean", df=Inf), "ci")
+attr(svyciprop(~ (totnewy3 =="1 new het.&/or sam. partner in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), method="mean", df=Inf), "ci")
+attr(svyciprop(~ (totnewy3 == "2+ new het.&/or sam. partners in last year"), design=subset(tdesign, rsex == "Female" & where3 != "sexual health"), method="mean", df=Inf), "ci")
 
 ################################
 # statistical tests for association between reason and setting
